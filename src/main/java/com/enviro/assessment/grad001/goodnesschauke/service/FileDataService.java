@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 @Service
 public class FileDataService {
@@ -18,9 +21,12 @@ public class FileDataService {
     public FileData storeFile(MultipartFile file) throws IOException {
         FileData fileData = new FileData();
         fileData.setFileName(file.getOriginalFilename());
-        fileData.setFileContent(new String(file.getBytes()));
-
-        String processedData = processFileContent(fileData.getFileContent());
+        String content;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            content = reader.lines().collect(Collectors.joining("\n"));
+        }
+        fileData.setFileContent(content);
+        String processedData = processFileContent(content);
         fileData.setProcessedData(processedData);
 
         return fileDataRepository.save(fileData);
@@ -31,8 +37,6 @@ public class FileDataService {
     }
 
     private String processFileContent(String content) {
-
-
-        return "Processed: " + content;
+        return content;
     }
 }
